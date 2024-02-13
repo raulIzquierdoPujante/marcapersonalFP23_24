@@ -90,12 +90,12 @@ class GitHubServiceProvider extends ServiceProvider
             $zip->close();
         }
 
-        public function getShaFile($repoName, $file)
+        public function getShaFile($repoName, $file,$rutaCiclo)
         {
             $owner = env('GITHUB_OWNER');
             $path = $file->getRelativePathname();
             try {
-                $response = $this->client->get("/repos/{$owner}/{$repoName}/contents/{$path}");
+                $response = $this->client->get("/repos/{$owner}/{$repoName}/contents/{$rutaCiclo}/{$path}");
             } catch (\Exception $e) {
             }
 
@@ -109,10 +109,10 @@ class GitHubServiceProvider extends ServiceProvider
 
         public function sendFile(Proyecto $proyecto, $file, $rutaCiclo)
         {
-            $repoName = env('GITHUB_PROYECTOS_REPO');
+            $repoName = $proyecto->getRepoNameFromURL();
             $owner = env('GITHUB_OWNER');
             $path = $file->getRelativePathname();
-            $sha = $this->getShaFile($repoName, $file);
+            $sha = $this->getShaFile($repoName, $file, $rutaCiclo);
             //Creamos la ruta añadiendo la ruta del ciclo / ruta del archivo
             $response = $this->client->put("/repos/{$owner}/{$repoName}/contents/{$rutaCiclo}/{$path}", [
                 'json' => [

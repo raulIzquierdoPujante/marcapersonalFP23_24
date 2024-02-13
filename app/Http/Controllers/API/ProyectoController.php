@@ -6,6 +6,7 @@ use App\Helpers\FilterHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProyectoResource;
 use App\Models\Proyecto;
+use App\Models\Ciclo;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Providers\GitHubServiceProvider;
@@ -82,10 +83,15 @@ class ProyectoController extends Controller
         }
 
          if (isset($path) && strlen($proyecto->url_github) == 0) {
+            $proyectoData['url_github'] = env("GITHUB_PROYECTOS_REPO");
+            $proyecto->update($proyectoData);
+
+            //Usamos el año fecha_inicio de la propiedad metadatos del proyecto
             $metadatos = unserialize($proyecto->metadatos);
             $year_inicio = date('Y', strtotime($metadatos['fecha_inicio']));
-            //Creamos un array de ciclos del proyecto
-            $ciclos= $proyecto->ciclos();
+
+           // Creamos un array de ciclos del proyecto
+            $ciclos= $proyecto->ciclos;
             foreach ($ciclos as $ciclo) {
                 //Creamos la ruta que pasaremos a la función de subida archivos para cada ciclo
                 $rutaCiclo = $ciclo->nombre.'/'.$year_inicio;
@@ -93,16 +99,10 @@ class ProyectoController extends Controller
             }
         }
 
-         $proyecto->update($proyectoData);
-
-        if (isset($path) && $proyecto->urlPerteneceOrganizacion()) {
-            //$this->githubService->pushZipFiles($proyecto);
-        }
-
-        // $this->githubService->deleteRepo($proyecto);
-
         return new ProyectoResource($proyecto);
     }
+
+
 
     /**
      * Remove the specified resource from storage.
